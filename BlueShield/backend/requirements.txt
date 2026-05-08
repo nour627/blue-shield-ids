@@ -2,3 +2,7 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 python-multipart
+passlib[bcrypt]
+python-jose[cryptography]
+slowapi
+bcrypt==4.0.1
