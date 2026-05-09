@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 
 from .database import engine
 from .models import Base
-from .routers import dashboard, live_traffic, alerts, models, pcap, auth, admin
+from .routers import dashboard, live_traffic, alerts, models, pcap, auth, admin, tools, predict
 
 # Create all tables on startup
 Base.metadata.create_all(bind=engine)
@@ -53,6 +53,8 @@ app.include_router(models.router)
 app.include_router(pcap.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
+app.include_router(tools.router)
+app.include_router(predict.router)
 
 
 @app.get("/")

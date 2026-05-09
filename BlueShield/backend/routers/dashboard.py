@@ -65,8 +65,6 @@ def get_stats(db: Session = Depends(get_db)):
         "pct_change": pct_change,
         "active_threats": active_threats,
         "need_action": need_action,
-        "model_accuracy": 97.3,
-        "model_name": "Random Forest",
         "blocked_ips": blocked_ips,
     }
 

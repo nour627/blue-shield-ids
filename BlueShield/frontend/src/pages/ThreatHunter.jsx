@@ -1,24 +1,25 @@
 import { useState } from 'react'
+import { api } from '../services/api'
 
 export default function ThreatHunter() {
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [results, setResults] = useState(null)
 
-  function handleSearch(e) {
+  async function handleSearch(e) {
     e.preventDefault()
     if (!query) return
     setSearching(true)
     
-    // Simulate search delay
-    setTimeout(() => {
-      setResults([
-        { id: '10294', time: '14:22:11', ip: '192.168.1.45', event: 'Multiple failed logins', status: 'Blocked' },
-        { id: '10293', time: '14:15:02', ip: query, event: 'Suspicious payload injected', status: 'Flagged' },
-        { id: '10290', time: '13:01:44', ip: '10.0.0.5', event: 'Unusual port scan', status: 'Ignored' },
-      ])
+    try {
+      const data = await api.tools.search(query)
+      setResults(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error(err)
+      setResults([])
+    } finally {
       setSearching(false)
-    }, 1200)
+    }
   }
 
   return (
@@ -34,7 +35,7 @@ export default function ThreatHunter() {
             type="text" 
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search by IP, MAC, Event ID, or Signature (e.g. 192.168.1.1)"
+            placeholder="Search by IP, Attack Type, or Signature (e.g. 192.168.1.1 or DoS)"
             className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow"
           />
           <button 
@@ -48,15 +49,22 @@ export default function ThreatHunter() {
         </form>
       </div>
 
-      {results && (
+      {results && results.length === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center shadow-sm">
+          <p className="text-gray-500 text-sm">No results found. Try a different search query or upload a PCAP file first.</p>
+        </div>
+      )}
+
+      {results && results.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden animate-fade-up">
           <table className="w-full text-left text-sm">
             <thead className="bg-[#f8fafc] border-b border-gray-200 text-gray-500">
               <tr>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Event ID</th>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Time</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">ID</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Timestamp</th>
                 <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Source IP</th>
-                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Event Details</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Dest IP</th>
+                <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Attack Type</th>
                 <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Status</th>
               </tr>
             </thead>
@@ -64,9 +72,10 @@ export default function ThreatHunter() {
               {results.map((r, i) => (
                 <tr key={i} className="hover:bg-gray-50/50">
                   <td className="px-6 py-4 font-mono text-gray-500">{r.id}</td>
-                  <td className="px-6 py-4 text-gray-600">{r.time}</td>
-                  <td className="px-6 py-4 font-mono text-[#1a73e8]">{r.ip}</td>
-                  <td className="px-6 py-4 text-gray-900 font-medium">{r.event}</td>
+                  <td className="px-6 py-4 text-gray-600">{r.timestamp || '—'}</td>
+                  <td className="px-6 py-4 font-mono text-[#1a73e8]">{r.src_ip || '—'}</td>
+                  <td className="px-6 py-4 font-mono text-gray-600">{r.dst_ip || '—'}</td>
+                  <td className="px-6 py-4 text-gray-900 font-medium">{r.attack_type || '—'}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${
                       r.status === 'Blocked' ? 'bg-red-100 text-red-700' : 

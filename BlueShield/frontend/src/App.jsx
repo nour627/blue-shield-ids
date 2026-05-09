@@ -10,6 +10,7 @@ import IpLookup from './pages/IpLookup';
 import Retrain from './pages/Retrain';
 import ExportPdf from './pages/ExportPdf';
 import Settings from './pages/Settings';
+import Diagnostics from './pages/Diagnostics';
 
 // Auth & Admin imports
 import { AuthProvider } from './context/AuthContext';
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="retrain" element={<Retrain />} />
             <Route path="export" element={<ExportPdf />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="diagnostics" element={<Diagnostics />} />
           </Route>
         </Routes>
       </BrowserRouter>

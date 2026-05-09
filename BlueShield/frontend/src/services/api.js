@@ -49,5 +49,9 @@ export const api = {
       }
       return res.json()
     }
+  },
+  tools: {
+    search: (query) => request(`/tools/search?query=${query}`),
+    ping: (host) => request(`/tools/ping?host=${host}`),
   }
 }

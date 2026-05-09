@@ -3,52 +3,40 @@ BlueShield IDS — Live Traffic Router
 Endpoints:
   GET /api/live-traffic/stream
 """
-from fastapi import APIRouter
-import random
-from datetime import datetime
-import uuid
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from ..database import get_db
+from ..models import TrafficEvent
 
 router = APIRouter(prefix="/api/live-traffic", tags=["live-traffic"])
 
-ATTACK_TYPES = ["Normal", "Normal", "Normal", "Normal", "DoS", "PortScan", "Brute Force", "Web Attack", "Bot", "Infiltration"]
-SEVERITIES = {
-    "Normal": "Normal",
-    "DoS": "High",
-    "PortScan": "Medium",
-    "Brute Force": "High",
-    "Web Attack": "Medium",
-    "Bot": "Low",
-    "Infiltration": "High",
-}
-PROTOCOLS = ["TCP", "UDP", "ICMP"]
-
 @router.get("/stream")
-def get_live_stream(limit: int = 12):
+def get_live_stream(limit: int = 50, db: Session = Depends(get_db)):
     """
-    Simulates real-time network traffic.
-    Generates realistic random events on the fly so the frontend 
-    always sees fresh timestamps every 2 seconds.
+    Returns the latest traffic events from the database.
+    Data is populated when a PCAP file is uploaded and analyzed.
     """
-    events = []
+    events = (
+        db.query(TrafficEvent)
+        .order_by(TrafficEvent.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
     
-    for _ in range(limit):
-        attack = random.choice(ATTACK_TYPES)
-        severity = SEVERITIES[attack]
-        
-        events.append({
-            "id": str(uuid.uuid4())[:8],
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-            "src_ip": f"{random.randint(45, 203)}.{random.randint(0, 255)}.{random.randint(0, 255)}.{random.randint(1, 254)}" if attack != "Normal" else f"192.168.1.{random.randint(100, 250)}",
-            "dst_ip": f"192.168.1.{random.randint(1, 50)}",
-            "protocol": random.choice(PROTOCOLS),
-            "src_port": random.randint(1024, 65535),
-            "dst_port": random.choice([80, 443, 22, 21, 53, 3306, 8080]),
-            "attack_type": attack,
-            "severity": severity,
-            "bytes_total": random.randint(64, 35000),
-            "duration": round(random.uniform(0.005, 12.0), 3),
-        })
-        
-    # Sort events by timestamp desc
-    events.sort(key=lambda x: x["timestamp"], reverse=True)
-    return events
+    return [
+        {
+            "id": str(e.id),
+            "timestamp": e.timestamp.isoformat() + "Z",
+            "src_ip": e.src_ip,
+            "dst_ip": e.dst_ip,
+            "src_port": e.src_port,
+            "dst_port": e.dst_port,
+            "protocol": e.protocol,
+            "attack_type": e.attack_type,
+            "severity": e.severity,
+            "bytes_total": e.bytes_sent + e.bytes_recv,
+            "duration": e.duration,
+        }
+        for e in events
+    ]

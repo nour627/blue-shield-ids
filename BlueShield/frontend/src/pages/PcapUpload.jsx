@@ -156,16 +156,16 @@ export default function PcapUpload() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-              <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Total Packets</p>
-              <p className="text-2xl font-bold text-slate-800">{result.analysis.total_packets_parsed.toLocaleString()}</p>
+              <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Total Flows</p>
+              <p className="text-2xl font-bold text-slate-800">{(result.analysis.total_flows_analyzed || 0).toLocaleString()}</p>
             </div>
             <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
               <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">File Size</p>
               <p className="text-2xl font-bold text-slate-800">{(result.size_bytes / 1024).toFixed(1)} KB</p>
             </div>
-            <div className={`p-4 rounded-xl border ${result.analysis.anomalous_packets > 0 ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
-              <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${result.analysis.anomalous_packets > 0 ? 'text-red-600' : 'text-slate-500'}`}>Anomalous</p>
-              <p className="text-2xl font-bold text-slate-800">{result.analysis.anomalous_packets.toLocaleString()}</p>
+            <div className={`p-4 rounded-xl border ${(result.analysis.anomalous_flows || 0) > 0 ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+              <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${(result.analysis.anomalous_flows || 0) > 0 ? 'text-red-600' : 'text-slate-500'}`}>Anomalous</p>
+              <p className="text-2xl font-bold text-slate-800">{(result.analysis.anomalous_flows || 0).toLocaleString()}</p>
             </div>
             <div className={`p-4 rounded-xl border ${result.analysis.risk_score > 0 ? 'bg-amber-50/50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
               <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${result.analysis.risk_score > 0 ? 'text-amber-600' : 'text-slate-500'}`}>Risk Score</p>
